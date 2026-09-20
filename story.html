@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>村口大树的故事</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #fff6ea;
+            font-family: "微软雅黑", "PingFang SC", sans-serif;
+            color: #4a2f2f;
+        }
+        .wrap {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 28px 20px 60px;
+        }
+        a.back {
+            color: #c45c5c;
+            text-decoration: none;
+            font-size: 15px;
+        }
+        h1 {
+            font-weight: 500;
+            font-size: 28px;
+            margin: 18px 0 8px;
+        }
+        .sub {
+            color: #8a6a6a;
+            margin-bottom: 22px;
+        }
+        video {
+            width: 100%;
+            max-height: 70vh;
+            background: #1a1010;
+            border-radius: 14px;
+            box-shadow: 0 12px 40px rgba(120, 40, 40, 0.12);
+        }
+        .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 14px 0 22px;
+            gap: 12px;
+        }
+        .title { font-size: 18px; }
+        .controls button {
+            background: #c45c5c;
+            color: #fff;
+            border: 0;
+            border-radius: 20px;
+            padding: 8px 16px;
+            margin-left: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .controls button.ghost {
+            background: #fff;
+            color: #c45c5c;
+            border: 1px solid #f0cfcf;
+        }
+        .scenes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+        }
+        .scene {
+            background: #fff;
+            border: 1px solid #f3dcdc;
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            text-align: left;
+        }
+        .scene.active {
+            border-color: #c45c5c;
+            box-shadow: 0 0 0 2px rgba(196, 92, 92, 0.15);
+        }
+        .scene b { display: block; font-size: 13px; color: #c45c5c; margin-bottom: 4px; }
+        .scene span { font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <a class="back" href="index.html">← 回到那棵开花的树</a>
+        <h1>村口大树</h1>
+        <p class="sub">一共十七场。点选任意一场，或按顺序看完。</p>
+        <video id="player" controls playsinline></video>
+        <div class="meta">
+            <div class="title" id="now">第一场 · 拉远</div>
+            <div class="controls">
+                <button class="ghost" id="prev">上一场</button>
+                <button id="next">下一场</button>
+            </div>
+        </div>
+        <div class="scenes" id="scenes"></div>
+    </div>
+    <script>
+        var scenes = [
+            ["vedio/01村口大树_第一场_拉远.mp4", "第一场", "拉远"],
+            ["vedio/02村口大树_第二场_围着玩.mp4", "第二场", "围着玩"],
+            ["vedio/03村口大树_第三场_长满了刺.mp4", "第三场", "长满了刺"],
+            ["vedio/04村口大树_第四场_无人靠近.mp4", "第四场", "无人靠近"],
+            ["vedio/05村口大树_第五场_怎样的果子.mp4", "第五场", "怎样的果子"],
+            ["vedio/06村口大树_第六场_爬上去看.mp4", "第六场", "爬上去看"],
+            ["vedio/07村口大树_第七场_看不见尽头.mp4", "第七场", "看不见尽头"],
+            ["vedio/08村口大树_第八场_划破.mp4", "第八场", "划破"],
+            ["vedio/09村口大树_第九场_滑落.mp4", "第九场", "滑落"],
+            ["vedio/10村口大树_第十场_挂在刺上.mp4", "第十场", "挂在刺上"],
+            ["vedio/11村口大树_第十一场_眼前发黑.mp4", "第十一场", "眼前发黑"],
+            ["vedio/12村口大树_第十二场_念头.mp4", "第十二场", "念头"],
+            ["vedio/13村口大树_第十三场_再往上爬.mp4", "第十三场", "再往上爬"],
+            ["vedio/14村口大树_第十四场_再往上爬.mp4", "第十四场", "再往上爬"],
+            ["vedio/15村口大树_第十五场_树顶.mp4", "第十五场", "树顶"],
+            ["vedio/16村口大树_第十六场_巨玫瑰.mp4", "第十六场", "巨玫瑰"],
+            ["vedio/17村口大树_第十七场_花心.mp4", "第十七场", "花心"]
+        ];
+
+        var index = 0;
+        var player = document.getElementById("player");
+        var list = document.getElementById("scenes");
+
+        scenes.forEach(function (item, i) {
+            var btn = document.createElement("button");
+            btn.className = "scene" + (i === 0 ? " active" : "");
+            btn.innerHTML = "<b>" + item[1] + "</b><span>" + item[2] + "</span>";
+            btn.onclick = function () { play(i, true); };
+            list.appendChild(btn);
+        });
+
+        function play(i, auto) {
+            index = i;
+            player.src = scenes[i][0];
+            document.getElementById("now").textContent = scenes[i][1] + " · " + scenes[i][2];
+            Array.prototype.forEach.call(list.children, function (el, n) {
+                el.classList.toggle("active", n === i);
+            });
+            if (auto) { player.play().catch(function () {}); }
+        }
+
+        player.addEventListener("ended", function () {
+            if (index < scenes.length - 1) {
+                play(index + 1, true);
+            }
+        });
+        document.getElementById("prev").onclick = function () {
+            play(Math.max(0, index - 1), true);
+        };
+        document.getElementById("next").onclick = function () {
+            play(Math.min(scenes.length - 1, index + 1), true);
+        };
+
+        play(0, false);
+    </script>
+</body>
+</html>
