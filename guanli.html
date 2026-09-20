@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台重置</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff4e8;
+            font-family: "微软雅黑", "PingFang SC", sans-serif;
+            color: #4a2f2f;
+        }
+        .card {
+            width: min(420px, calc(100% - 32px));
+            background: #fff;
+            border: 1px solid #f0cfcf;
+            border-radius: 16px;
+            padding: 28px 24px;
+            box-shadow: 0 12px 32px rgba(196, 92, 92, 0.12);
+        }
+        h1 { font-size: 22px; font-weight: 500; margin: 0 0 8px; }
+        p { margin: 0 0 18px; color: #8a6a6a; font-size: 14px; line-height: 1.6; }
+        label { display: block; margin-bottom: 8px; font-size: 14px; }
+        input, button {
+            width: 100%;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 16px;
+        }
+        input {
+            border: 1px solid #e8b4b4;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 14px;
+        }
+        button {
+            border: 0;
+            border-radius: 999px;
+            padding: 10px 16px;
+            background: #c45c5c;
+            color: #fff;
+            cursor: pointer;
+        }
+        button:disabled { opacity: .6; cursor: wait; }
+        #msg { margin-top: 14px; min-height: 1.4em; font-size: 14px; }
+        a { color: #c45c5c; text-decoration: none; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>重置「愿意」</h1>
+        <p>这会让网站重新出现表白按钮。计时器会清掉，下次点「愿意」再重新开始。</p>
+        <label for="pwd">后台密码</label>
+        <input id="pwd" type="password" autocomplete="current-password">
+        <button type="button" id="reset-btn">重置</button>
+        <div id="msg"></div>
+        <p style="margin-top:18px;margin-bottom:0;"><a href="index.html">返回网站</a></p>
+    </div>
+    <script>
+        var PASSWORD = "dashi-reset";
+        var TOGETHER_LIVE = "https://crudcrud.com/api/8a2d362fbe6a442d80b3a3c836a52ca8/together";
+        var TOGETHER_ITEM = "https://crudcrud.com/api/8a2d362fbe6a442d80b3a3c836a52ca8/together/6aafa455d23fb003e8b868e1";
+        var msg = document.getElementById("msg");
+        var btn = document.getElementById("reset-btn");
+
+        function say(text, ok) {
+            msg.style.color = ok ? "#2f7d4a" : "#c45c5c";
+            msg.textContent = text;
+        }
+
+        btn.addEventListener("click", function () {
+            if (document.getElementById("pwd").value !== PASSWORD) {
+                say("密码不对。", false);
+                return;
+            }
+            btn.disabled = true;
+            say("正在重置…", true);
+            fetch(TOGETHER_LIVE)
+                .then(function (r) { return r.ok ? r.json() : []; })
+                .catch(function () { return []; })
+                .then(function (list) {
+                    var body = JSON.stringify({ accepted: false, since: null });
+                    var tasks;
+                    if (Array.isArray(list) && list.length) {
+                        tasks = list.map(function (item) {
+                            return fetch(TOGETHER_LIVE + "/" + item._id, {
+                                method: "PUT",
+                                headers: { "Content-Type": "application/json" },
+                                body: body
+                            });
+                        });
+                    } else {
+                        tasks = [fetch(TOGETHER_ITEM, {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: body
+                        })];
+                    }
+                    return Promise.all(tasks);
+                })
+                .then(function () {
+                    say("已经重置。现在谁打开网站都会重新看到「愿意」。", true);
+                    btn.disabled = false;
+                })
+                .catch(function () {
+                    say("重置失败，请再试一次。", false);
+                    btn.disabled = false;
+                });
+        });
+    </script>
+</body>
+</html>
