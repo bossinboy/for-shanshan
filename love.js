@@ -85,23 +85,6 @@
         }
     }
 
-    RosePetal = function() {
-        var points = [], x, y, t;
-        for (var i = 0; i <= 180; i += 3) {
-            t = i * Math.PI / 180;
-            x = 13 * Math.pow(Math.sin(t), 3);
-            y = 18 * Math.cos(t) - 3 * Math.cos(2 * t);
-            points.push(new Point(x, y));
-        }
-        this.points = points;
-        this.length = points.length;
-    }
-    RosePetal.prototype = {
-        get: function(i, scale) {
-            return this.points[i].mul(scale || 1);
-        }
-    }
-
     Seed = function(tree, point, scale, color) {
         this.tree = tree;
 
@@ -293,7 +276,7 @@
                 num = bloom.num || 500, 
                 width = bloom.width || this.width,
                 height = bloom.height || this.height,
-                figure = bloom.shape === 'rose' ? new RosePetal() : this.seed.heart.figure;
+                figure = this.seed.heart.figure;
             var r = bloom.radius || 240, x, y;
             for (var i = 0; i < num; i++) {
                 cache.push(this.createBloom(width, height, r, figure));
@@ -467,7 +450,7 @@
                 var bloom = this.opt.bloom || {},
                     width = bloom.width || this.width,
                     height = bloom.height || this.height,
-                    figure = bloom.shape === 'rose' ? new RosePetal() : this.seed.heart.figure;
+                    figure = this.seed.heart.figure;
                 var r = 240, x, y;
                 for (var i = 0; i < random(1,2); i++) {
                     blooms.push(this.createBloom(width / 2 + width, height, r, figure, roseColor(), 1, null, 1, new Point(random(-100,600), 720), random(200,300)));
