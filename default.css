@@ -19,7 +19,7 @@ body.stage-start #main,body.stage-intro #main{visibility:hidden;height:0;overflo
 .hand{cursor:pointer;}
 .say{margin-left:5px;}
 .space{margin-right:150px;}
-#hint{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);color:#c45c5c;font-size:18px;letter-spacing:2px;pointer-events:none;text-shadow:0 0 12px #fff;white-space:nowrap;z-index:3}
+#hint{position:absolute;left:50%;top:200px;transform:translate(-50%,0);color:#c45c5c;font-size:18px;letter-spacing:2px;pointer-events:none;text-shadow:0 0 12px #fff;white-space:nowrap;z-index:3}
 #start-screen,#intro{position:fixed;inset:0;z-index:80;transition:opacity .45s ease,visibility .45s ease}
 #start-screen{z-index:90;background:#fff4e8;display:flex;align-items:center;justify-content:center}
 #start-btn{width:156px;height:156px;border-radius:50%;border:1px solid #e8b4b4;background:#fff;color:#c45c5c;font-size:28px;letter-spacing:10px;text-indent:10px;cursor:pointer;box-shadow:0 12px 32px rgba(196,92,92,.16);font-family:inherit}
