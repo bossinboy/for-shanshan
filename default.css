@@ -1,6 +1,8 @@
 body{margin:0;padding:0;background:#ffe;font-size:14px;font-family:'微软雅黑','宋体',sans-serif;color:#231F20;overflow:auto}
+body.stage-start,body.stage-intro{overflow:hidden;height:100%;}
 a {color:#000;font-size:14px;}
 #main{width:100%;}
+body.stage-start #main,body.stage-intro #main{visibility:hidden;height:0;overflow:hidden;}
 #wrap{position:relative;margin:0 auto;width:1100px;height:680px;margin-top:10px;}
 #text{width:400px;height:425px;left:60px;top:80px;position:absolute;}
 #code{display:none;font-size:16px;}
@@ -14,5 +16,14 @@ a {color:#000;font-size:14px;}
 .say{margin-left:5px;}
 .space{margin-right:150px;}
 #hint{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);color:#c45c5c;font-size:18px;letter-spacing:2px;pointer-events:none;text-shadow:0 0 12px #fff;white-space:nowrap;z-index:3}
-.top-link{position:fixed;right:20px;top:18px;z-index:10;color:#c45c5c;text-decoration:none;font-size:15px;background:#fff7f0;border:1px solid #f0cfcf;border-radius:20px;padding:8px 16px;box-shadow:0 2px 10px rgba(196,92,92,.12)}
-.top-link:hover{background:#fff}
+#start-screen,#intro{position:fixed;inset:0;z-index:80;transition:opacity .45s ease,visibility .45s ease}
+#start-screen{z-index:90;background:#fff4e8;display:flex;align-items:center;justify-content:center}
+#start-btn{width:156px;height:156px;border-radius:50%;border:1px solid #e8b4b4;background:#fff;color:#c45c5c;font-size:28px;letter-spacing:10px;text-indent:10px;cursor:pointer;box-shadow:0 12px 32px rgba(196,92,92,.16);font-family:inherit}
+#start-btn:hover{transform:scale(1.04)}
+#start-btn:disabled{opacity:.7;transform:none;cursor:wait}
+#intro{background:#000}
+#intro video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;opacity:0}
+#intro video.is-on{opacity:1}
+#skip-btn{position:absolute;top:20px;right:22px;z-index:5;background:rgba(0,0,0,.38);color:#fff;border:1px solid rgba(255,255,255,.38);border-radius:999px;padding:8px 18px;font-size:15px;letter-spacing:3px;cursor:pointer;font-family:inherit}
+#skip-btn:hover{background:rgba(0,0,0,.55)}
+body.stage-intro #start-screen,body.stage-love #start-screen,body.stage-love #intro{opacity:0;visibility:hidden;pointer-events:none}

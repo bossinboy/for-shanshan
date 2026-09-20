@@ -15,11 +15,21 @@
     <script type="text/javascript" src="functions.js" charset="utf-8"></script>
     <script type="text/javascript" src="love.js" charset="utf-8"></script>
 </head>
-<body>
+<body class="stage-start">
 <audio id="bgm" loop>
     <source src="最美情侣.mp3" type="audio/mp3">
 </audio>
-<a class="top-link" href="story.html">村口大树的故事 →</a>
+
+<div id="start-screen">
+    <button type="button" id="start-btn">开始</button>
+</div>
+
+<div id="intro">
+    <button type="button" id="skip-btn">跳过</button>
+    <video id="clip-a" playsinline webkit-playsinline></video>
+    <video id="clip-b" playsinline webkit-playsinline></video>
+</div>
+
 <div id="main">
     <div id="error">亲，您使用的浏览器无法支持即将显示的内容，请换成谷歌 Chrome 或者火狐 Firefox 浏览器哟~</div>
     <div id="wrap">
@@ -50,7 +60,7 @@
             </div>
         </div>
         <div id="clock-box">
-            <a href="story.html">我</a> 喜欢 <a href="story.html">你</a> 的
+            我 喜欢 你 的
             <div id="clock"></div>
         </div>
         <canvas id="canvas" width="1100" height="680"></canvas>
@@ -58,8 +68,189 @@
 </div>
 
 <script>
-    (function(){
+    (function () {
+        var clips = [
+            "vedio/01村口大树_第一场_拉远.mp4",
+            "vedio/02村口大树_第二场_围着玩.mp4",
+            "vedio/03村口大树_第三场_长满了刺.mp4",
+            "vedio/04村口大树_第四场_无人靠近.mp4",
+            "vedio/05村口大树_第五场_怎样的果子.mp4",
+            "vedio/06村口大树_第六场_爬上去看.mp4",
+            "vedio/07村口大树_第七场_看不见尽头.mp4",
+            "vedio/08村口大树_第八场_划破.mp4",
+            "vedio/09村口大树_第九场_滑落.mp4",
+            "vedio/10村口大树_第十场_挂在刺上.mp4",
+            "vedio/11村口大树_第十一场_眼前发黑.mp4",
+            "vedio/12村口大树_第十二场_念头.mp4",
+            "vedio/13村口大树_第十三场_再往上爬.mp4",
+            "vedio/14村口大树_第十四场_再往上爬.mp4",
+            "vedio/15村口大树_第十五场_树顶.mp4",
+            "vedio/16村口大树_第十六场_巨玫瑰.mp4",
+            "vedio/17村口大树_第十七场_花心.mp4"
+        ];
+
+        var a = document.getElementById("clip-a");
+        var b = document.getElementById("clip-b");
+        var startBtn = document.getElementById("start-btn");
+        var current = a;
+        var standby = b;
+        var currentIndex = 0;
+        var swapping = false;
+        var finished = false;
+
+        function arm(video, index) {
+            if (index >= clips.length) {
+                video.removeAttribute("src");
+                video.removeAttribute("data-index");
+                video.load();
+                return;
+            }
+            if (video.getAttribute("data-index") === String(index) && video.src) {
+                return;
+            }
+            video.setAttribute("data-index", String(index));
+            video.src = clips[index];
+            video.preload = "auto";
+            video.load();
+        }
+
+        function finishIntro() {
+            if (finished) {
+                return;
+            }
+            finished = true;
+            current.pause();
+            standby.pause();
+            document.body.className = "stage-love";
+            window.setTimeout(function () {
+                startLovePage();
+            }, 80);
+        }
+
+        function beginSwap() {
+            if (finished || swapping) {
+                return;
+            }
+            var nextIndex = currentIndex + 1;
+            if (nextIndex >= clips.length) {
+                finishIntro();
+                return;
+            }
+            swapping = true;
+
+            function go() {
+                var from = current;
+                var to = standby;
+                try {
+                    to.currentTime = 0;
+                } catch (e) {}
+                var playPromise = to.play();
+
+                function shown() {
+                    if (finished) {
+                        return;
+                    }
+                    to.classList.add("is-on");
+                    from.classList.remove("is-on");
+                    from.pause();
+                    current = to;
+                    standby = from;
+                    currentIndex = nextIndex;
+                    arm(standby, currentIndex + 1);
+                    swapping = false;
+                }
+
+                if (playPromise && playPromise.then) {
+                    playPromise.then(shown).catch(function () {
+                        swapping = false;
+                        if (nextIndex >= clips.length - 1) {
+                            finishIntro();
+                        }
+                    });
+                } else {
+                    shown();
+                }
+            }
+
+            if (standby.getAttribute("data-index") !== String(nextIndex)) {
+                arm(standby, nextIndex);
+            }
+            if (standby.readyState >= 2) {
+                go();
+            } else {
+                standby.addEventListener("canplay", function onCan() {
+                    standby.removeEventListener("canplay", onCan);
+                    go();
+                });
+            }
+        }
+
+        function onTime() {
+            if (finished || swapping || current !== this) {
+                return;
+            }
+            var duration = this.duration;
+            if (!duration || isNaN(duration)) {
+                return;
+            }
+            if (duration - this.currentTime <= 0.08) {
+                beginSwap();
+            }
+        }
+
+        function onEnded() {
+            if (finished || swapping || current !== this) {
+                return;
+            }
+            beginSwap();
+        }
+
+        a.addEventListener("timeupdate", onTime);
+        b.addEventListener("timeupdate", onTime);
+        a.addEventListener("ended", onEnded);
+        b.addEventListener("ended", onEnded);
+
+        arm(a, 0);
+        arm(b, 1);
+
+        startBtn.addEventListener("click", function () {
+            startBtn.disabled = true;
+            startBtn.textContent = "加载中";
+
+            function playNow() {
+                document.body.className = "stage-intro";
+                current.classList.add("is-on");
+                current.play().catch(function () {
+                    startBtn.disabled = false;
+                    startBtn.textContent = "开始";
+                    document.body.className = "stage-start";
+                });
+            }
+
+            if (current.readyState >= 2) {
+                playNow();
+            } else {
+                current.addEventListener("canplay", function onCan() {
+                    current.removeEventListener("canplay", onCan);
+                    playNow();
+                });
+            }
+        });
+
+        document.getElementById("skip-btn").addEventListener("click", finishIntro);
+    })();
+
+    var loveStarted = false;
+    function startLovePage() {
+        if (loveStarted) {
+            return;
+        }
         var canvas = $('#canvas');
+        if (!canvas[0] || !canvas.width()) {
+            window.setTimeout(startLovePage, 50);
+            return;
+        }
+        loveStarted = true;
 
         if (!canvas[0].getContext) {
             $("#error").show();
@@ -212,7 +403,7 @@
         }));
 
         runAsync().start();
-    })();
+    }
 </script>
 </body>
 </html>
