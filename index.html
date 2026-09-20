@@ -36,7 +36,7 @@
         <div id="hint">点击那颗种子，打开这份心意</div>
         <div id="text">
             <div id="code">
-                <span class="say">亲爱的~宝宝，自从遇到你，我觉得我终于找到了幸福</span><br>
+                <span class="say">亲爱的~珊珊，自从遇到你，我觉得我终于找到了幸福</span><br>
                 <span class="say">我会守护你生命里的精彩，并陪伴你一路精彩下去。</span><br>
                 <span class="say">你的幸福快乐，是我一生的追求。</span><br>
                 <span class="say">我会每一天带着笑脸，和你说早安，</span><br>
@@ -56,11 +56,14 @@
                 <span class="say">都是我们一辈子最美的回忆。</span><br>
                 <span class="say">我愿意爱你直到老去！</span><br>
                 <br>
-                <span class="say"><span class="space"></span> -- Yours, 修修.</span>
+                <span class="say"><span class="space"></span> -- Yours, 大师.</span>
             </div>
         </div>
         <div id="clock-box">
-            我 喜欢 你 的
+            <div id="ask-box">
+                <button type="button" id="ask-msg">珊珊，我喜欢你，你愿意做我女朋友吗</button>
+                <button type="button" id="yes-btn">愿意</button>
+            </div>
             <div id="clock"></div>
         </div>
         <canvas id="canvas" width="1100" height="680"></canvas>
@@ -68,6 +71,95 @@
 </div>
 
 <script>
+    window.togetherState = { accepted: false, since: null };
+    var TOGETHER_FILE = "together.json";
+    var TOGETHER_LIVE = "https://crudcrud.com/api/8a2d362fbe6a442d80b3a3c836a52ca8/together";
+    var TOGETHER_ITEM = "https://crudcrud.com/api/8a2d362fbe6a442d80b3a3c836a52ca8/together/6aafa455d23fb003e8b868e1";
+
+    function applyTogetherUI() {
+        if (window.togetherState.accepted && window.togetherState.since) {
+            $("#ask-box").hide();
+            $("#clock").show();
+        } else {
+            $("#ask-box").show();
+            $("#clock").hide();
+        }
+    }
+
+    function loadTogetherState() {
+        return Promise.all([
+            fetch(TOGETHER_FILE + "?t=" + Date.now()).then(function (r) {
+                return r.ok ? r.json() : null;
+            }).catch(function () { return null; }),
+            fetch(TOGETHER_LIVE).then(function (r) {
+                return r.ok ? r.json() : null;
+            }).catch(function () { return null; })
+        ]).then(function (results) {
+            var file = results[0] || {};
+            var liveList = results[1];
+            var live = {};
+            if (Array.isArray(liveList) && liveList.length) {
+                live = liveList.filter(function (item) { return item.accepted; })[0] || liveList[0];
+            }
+            if (live.accepted && live.since) {
+                window.togetherState = { accepted: true, since: live.since };
+            } else if (file.accepted && file.since) {
+                window.togetherState = { accepted: true, since: file.since };
+            } else {
+                window.togetherState = { accepted: false, since: null };
+            }
+            applyTogetherUI();
+        });
+    }
+
+    function saveTogetherYes() {
+        var since = (window.togetherState.accepted && window.togetherState.since)
+            ? window.togetherState.since
+            : new Date().toISOString();
+        window.togetherState = { accepted: true, since: since };
+        applyTogetherUI();
+
+        return fetch(TOGETHER_LIVE).then(function (r) {
+            return r.ok ? r.json() : [];
+        }).catch(function () { return []; }).then(function (liveList) {
+            var live = {};
+            if (Array.isArray(liveList) && liveList.length) {
+                live = liveList.filter(function (item) { return item.accepted; })[0] || liveList[0] || {};
+            }
+            if (live.accepted && live.since) {
+                window.togetherState = { accepted: true, since: live.since };
+                applyTogetherUI();
+                return;
+            }
+            var body = JSON.stringify({ accepted: true, since: since });
+            var itemUrl = live._id ? (TOGETHER_LIVE + "/" + live._id) : TOGETHER_ITEM;
+            return fetch(itemUrl, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: body
+            }).then(function (r) {
+                if (r.ok) { return; }
+                return fetch(TOGETHER_LIVE, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: body
+                });
+            }).catch(function () {
+                return fetch(TOGETHER_LIVE, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: body
+                });
+            });
+        });
+    }
+
+    loadTogetherState();
+    document.getElementById("yes-btn").addEventListener("click", function () {
+        this.disabled = true;
+        saveTogetherYes();
+    });
+
     (function () {
         var clips = [
             "vedio/01村口大树_第一场_拉远.mp4",
@@ -377,17 +469,13 @@
         }));
 
         var textAnimate = eval(Jscex.compile("async", function () {
-            var together = new Date();
-            together.setFullYear(2018, 6, 22);
-            together.setHours(20);
-            together.setMinutes(20);
-            together.setSeconds(0);
-            together.setMilliseconds(0);
-
             $("#code").show().typewriter();
+            applyTogetherUI();
             $("#clock-box").fadeIn(500);
             while (true) {
-                timeElapse(together);
+                if (window.togetherState.accepted && window.togetherState.since) {
+                    timeElapse(new Date(window.togetherState.since));
+                }
                 $await(Jscex.Async.sleep(1000));
             }
         }));
