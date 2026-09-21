@@ -100,11 +100,9 @@
             var live = null;
             if (Array.isArray(liveList)) {
                 live = liveList.filter(function (item) { return item.accepted && item.since; })[0] || null;
-                if (live) {
-                    window.togetherState = { accepted: true, since: live.since };
-                } else {
-                    window.togetherState = { accepted: false, since: null };
-                }
+            }
+            if (live && live.since) {
+                window.togetherState = { accepted: true, since: live.since };
             } else if (file.accepted && file.since) {
                 window.togetherState = { accepted: true, since: file.since };
             } else {
